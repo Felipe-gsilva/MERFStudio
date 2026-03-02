@@ -558,7 +558,7 @@ class MERFModelConfig(ModelConfig):
     )  # Value range for density features.
     implementation: Literal["tcnn", "torch"] = "tcnn"
     """Which implementation to use for the model."""
-    alpha_threshold_param:Tuple[int, int, float, float] = field(
+    alpha_threshold_param:Tuple[int, int, float, float, int] = field(
       default_factory=lambda: (10000, 30000, 5e-4, 5e-2, 20000)
     ) 
     """alpha culling in MERF:(start iters, end iters, start culling value, end culling value)"""
