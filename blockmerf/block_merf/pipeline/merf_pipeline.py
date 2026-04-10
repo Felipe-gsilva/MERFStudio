@@ -1,6 +1,7 @@
 """
 MERF Pipeline class.
 """
+
 from __future__ import annotations
 
 import typing
@@ -34,7 +35,8 @@ import numpy as np
 import torch
 from merf.coord import stepsize_in_squash, contract
 from merf.grid_utils import calculate_grid_config, world_to_grid
-from merf.merf_model import MERFModel,MERFModelConfig
+from merf.merf_model import MERFModel, MERFModelConfig
+
 
 @dataclass
 class BlockMERFPipelineConfig(VanillaPipelineConfig):
@@ -45,8 +47,7 @@ class BlockMERFPipelineConfig(VanillaPipelineConfig):
 
 
 class BlockMERFPipeline(VanillaPipeline):
- 
-    def baking_merf(self,lod,chunk_idx):
-        self.model._model[lod][chunk_idx].baking_merf_model(self.datamanager,self.model,lod,chunk_idx)
-
-   
+    def baking_merf(self, lod, chunk_idx):
+        self.model._model[lod][chunk_idx].baking_merf_model(
+            self.datamanager, self.model, lod, chunk_idx
+        )

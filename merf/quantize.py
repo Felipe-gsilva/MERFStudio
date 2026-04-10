@@ -24,35 +24,36 @@ import torch
 
 MAX_BYTE = 2.0**8 - 1.0
 
+
 def denormalize(x, v_min, v_max):
-  """[0, 1] -> [v_min, v_max]."""
-  return v_min + x * (v_max - v_min)
+    """[0, 1] -> [v_min, v_max]."""
+    return v_min + x * (v_max - v_min)
 
 
 def quantize_float_to_byte(x):
-  """Converts float32 to uint8."""
-  return np.minimum(MAX_BYTE, np.maximum(0.0, np.round(MAX_BYTE * x))).astype(
-      np.uint8
-  )
+    """Converts float32 to uint8."""
+    return np.minimum(MAX_BYTE, np.maximum(0.0, np.round(MAX_BYTE * x))).astype(
+        np.uint8
+    )
 
 
 def dequantize_byte_to_float(x, xnp):
-  """Converts uint8 to float32."""
-  return x.astype(xnp.float32) / MAX_BYTE
+    """Converts uint8 to float32."""
+    return x.astype(xnp.float32) / MAX_BYTE
 
 
 def differentiable_byte_quantize(x):
-  """Implements rounding with a straight-through-estimator."""
-  zero = x - x.detach()
+    """Implements rounding with a straight-through-estimator."""
+    zero = x - x.detach()
 
-  return zero + (torch.round(torch.clamp(x, 0.0, 1.0) * MAX_BYTE) / MAX_BYTE).detach()
+    return zero + (torch.round(torch.clamp(x, 0.0, 1.0) * MAX_BYTE) / MAX_BYTE).detach()
 
 
 def simulate_quantization(x, v_min, v_max):
-  """Simulates quant. during training: [-inf, inf] -> [v_min, v_max]."""
-  x = torch.sigmoid(x)  # Bounded to [0, 1].
-  x = differentiable_byte_quantize(x)  # quantize and dequantize.
-  return denormalize(x, v_min, v_max)  # Bounded to [v_min, v_max].
+    """Simulates quant. during training: [-inf, inf] -> [v_min, v_max]."""
+    x = torch.sigmoid(x)  # Bounded to [0, 1].
+    x = differentiable_byte_quantize(x)  # quantize and dequantize.
+    return denormalize(x, v_min, v_max)  # Bounded to [v_min, v_max].
 
 
 # def dequantize_and_interpolate(x_grid, data, v_min, v_max):
@@ -78,25 +79,33 @@ def simulate_quantization(x, v_min, v_max):
 
 
 def map_quantize_tuple_list(*l):
-  """For quantization after training."""
-  def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-  def sigmoid_and_quantize_float_to_byte(x):
-    if x is None:
-      return None
-    x = sigmoid(x)
-    return quantize_float_to_byte(x)
+    """For quantization after training."""
 
-  return tuple([sigmoid_and_quantize_float_to_byte(item) for item in list_item] for list_item in l)
+    def sigmoid(x):
+        return 1 / (1 + np.exp(-x))
+
+    def sigmoid_and_quantize_float_to_byte(x):
+        if x is None:
+            return None
+        x = sigmoid(x)
+        return quantize_float_to_byte(x)
+
+    return tuple(
+        [sigmoid_and_quantize_float_to_byte(item) for item in list_item]
+        for list_item in l
+    )
+
 
 def map_quantize_tuple(*l):
-  """For quantization after training."""
-  def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-  def sigmoid_and_quantize_float_to_byte(x):
-    if x is None:
-      return None
-    x = sigmoid(x)
-    return quantize_float_to_byte(x)
+    """For quantization after training."""
 
-  return tuple(sigmoid_and_quantize_float_to_byte(item) for item in l)
+    def sigmoid(x):
+        return 1 / (1 + np.exp(-x))
+
+    def sigmoid_and_quantize_float_to_byte(x):
+        if x is None:
+            return None
+        x = sigmoid(x)
+        return quantize_float_to_byte(x)
+
+    return tuple(sigmoid_and_quantize_float_to_byte(item) for item in l)

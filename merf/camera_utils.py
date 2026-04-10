@@ -1,11 +1,13 @@
 from nerfstudio.cameras.camera_utils import focus_of_attention, rotation_matrix_between
 import math
-from typing import  Literal,  Tuple
+from typing import Literal, Tuple
 import numpy as np
 import torch
 from jaxtyping import Float
 from torch import Tensor
+
 _EPS = np.finfo(float).eps * 4.0
+
 
 def auto_orient_and_center_poses(
     poses: Float[Tensor, "*num_poses 4 4"],
@@ -64,13 +66,14 @@ def auto_orient_and_center_poses(
         oriented_poses = transform @ poses
 
         if oriented_poses.mean(dim=0)[2, 1] < 0:
-
             eigen = torch.eye(4)
             eigen[1:3] = -eigen[1:3]
             oriented_poses[:, 1:3] = -1 * oriented_poses[:, 1:3]
-            transform = torch.cat([transform,torch.tensor([[0.,0.,0.,1.]])],dim=0)
+            transform = torch.cat(
+                [transform, torch.tensor([[0.0, 0.0, 0.0, 1.0]])], dim=0
+            )
             transform = eigen @ transform
-            transform = transform[:-1,:]
+            transform = transform[:-1, :]
 
     elif method in ("up", "vertical"):
         up = torch.mean(poses[:, :3, 1], dim=0)
