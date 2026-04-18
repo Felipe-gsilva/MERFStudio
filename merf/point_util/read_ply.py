@@ -1,5 +1,7 @@
 import open3d as o3d
 import numpy as np
+
+
 def get_center_and_scale(path):
     point_cloud = o3d.io.read_point_cloud(path)
     point = np.asarray(point_cloud.points)
@@ -10,17 +12,17 @@ def get_center_and_scale(path):
     maxy = -np.inf
     maxz = -np.inf
     for i in range(len(point)):
-        if(point[i][0] < minx ):
+        if point[i][0] < minx:
             minx = point[i][0]
-        if (point[i][1] < miny):
+        if point[i][1] < miny:
             miny = point[i][1]
-        if (point[i][2] < minz):
+        if point[i][2] < minz:
             minz = point[i][2]
-        if (point[i][0] > maxx):
+        if point[i][0] > maxx:
             maxx = point[i][0]
-        if (point[i][1] > maxy):
+        if point[i][1] > maxy:
             maxy = point[i][1]
-        if (point[i][2] > maxz):
+        if point[i][2] > maxz:
             maxz = point[i][2]
 
     length = maxx - minx
@@ -29,7 +31,7 @@ def get_center_and_scale(path):
     print(f"length {length} width {width} height {height}")
     extend = 0.005
     extend_length = length * extend
-    extend_width  = width * extend
+    extend_width = width * extend
     extend_height = height * extend
 
     print(f"original min {minx},{miny},{minz} max {maxx} {maxy} {maxz} ")
@@ -41,9 +43,9 @@ def get_center_and_scale(path):
     maxz = maxz + extend_height
     print(f"changed_1 min {minx},{miny},{minz} max {maxx} {maxy} {maxz} ")
 
-    center_x = (minx + maxx)/2
-    center_y = (miny + maxy)/2
-    center_z = (minz + maxz)/2
+    center_x = (minx + maxx) / 2
+    center_y = (miny + maxy) / 2
+    center_z = (minz + maxz) / 2
     print(f"center  {center_x},{center_y}, {center_z} ")
 
     minx -= center_x
@@ -54,10 +56,10 @@ def get_center_and_scale(path):
     maxz -= center_z
 
     print(f"changed_2 min {minx},{miny},{minz} max {maxx} {maxy} {maxz} ")
-    scale_x = max(abs(minx),abs(maxx))
-    scale_y = max(abs(miny),abs(maxy))
-    scale_z = max(abs(minz),abs(maxz))
+    scale_x = max(abs(minx), abs(maxx))
+    scale_y = max(abs(miny), abs(maxy))
+    scale_z = max(abs(minz), abs(maxz))
 
-    scale = max(scale_x,max(scale_y,scale_z))
+    scale = max(scale_x, max(scale_y, scale_z))
     print(f" scene_scale_t = {scale}")
-    return np.array([center_x,center_y,center_z]), scale, maxz, minz
+    return np.array([center_x, center_y, center_z]), scale, maxz, minz

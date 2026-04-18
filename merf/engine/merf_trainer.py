@@ -1,4 +1,9 @@
-from nerfstudio.engine.trainer import TrainerConfig, Trainer, TRAIN_INTERATION_OUTPUT, TORCH_DEVICE
+from nerfstudio.engine.trainer import (
+    TrainerConfig,
+    Trainer,
+    TRAIN_INTERATION_OUTPUT,
+    TORCH_DEVICE,
+)
 import dataclasses
 import functools
 import os
@@ -12,8 +17,8 @@ import torch
 import torch.nn as nn
 from nerfstudio.utils import profiler, writer
 
-                    
-@dataclass 
+
+@dataclass
 class MERFTrainerConfig(ExperimentConfig):
     """Configuration for training regimen"""
 
@@ -55,12 +60,10 @@ class MERFTrainerConfig(ExperimentConfig):
     gradient_accumulation_steps: int = 1
     """Number of steps to accumulate gradients over."""
     # Felipe-gsilva: Has no implementation at all, but nerfstudio's Trainer requires it so im adding it too.
-    start_paused: bool = False 
-    
-    
-    
+    start_paused: bool = False
+
+
 class MERFTrainer(Trainer):
-    
     @profiler.time_function
     def train_iteration(self, step: int) -> TRAIN_INTERATION_OUTPUT:
         """Run one iteration with a batch of inputs. Returns dictionary of model losses.
@@ -71,33 +74,39 @@ class MERFTrainer(Trainer):
 
         self.optimizers.zero_grad_all()
         cpu_or_cuda_str: str = self.device.split(":")[0]
-        assert (
-            self.gradient_accumulation_steps > 0
-        ), f"gradient_accumulation_steps must be > 0, not {self.gradient_accumulation_steps}"
+        assert self.gradient_accumulation_steps > 0, (
+            f"gradient_accumulation_steps must be > 0, not {self.gradient_accumulation_steps}"
+        )
         for _ in range(self.gradient_accumulation_steps):
-            with torch.autocast(device_type=cpu_or_cuda_str, enabled=self.mixed_precision):
-                _, loss_dict, metrics_dict = self.pipeline.get_train_loss_dict(step=step)
+            with torch.autocast(
+                device_type=cpu_or_cuda_str, enabled=self.mixed_precision
+            ):
+                _, loss_dict, metrics_dict = self.pipeline.get_train_loss_dict(
+                    step=step
+                )
                 loss = functools.reduce(torch.add, loss_dict.values())
                 loss /= self.gradient_accumulation_steps
             self.grad_scaler.scale(loss).backward()  # type: ignore
-        
+
         if self.config.clip_gradients:
             for tag, param in self.pipeline.model.named_parameters():
                 if param.grad is not None:
                     # Clip by value
                     if self.config.grad_max_val > 0:
-                        param.grad.data.clamp_(-self.config.grad_max_val, self.config.grad_max_val)
-                    
+                        param.grad.data.clamp_(
+                            -self.config.grad_max_val, self.config.grad_max_val
+                        )
+
                     # Clip by norm
                     if self.config.grad_max_norm > 0:
                         grad_norm = param.grad.data.norm()
                         scale = min(1, self.config.grad_max_norm / (grad_norm + 1e-6))
                         param.grad.data.mul_(scale)
-                        
+
         for tag, param in self.pipeline.model.named_parameters():
             if param.grad is not None:
                 param.grad.data = torch.nan_to_num(param.grad.data)
-                        
+
         self.optimizers.optimizer_scaler_step_all(self.grad_scaler)
 
         if self.config.log_gradients:

@@ -1,6 +1,7 @@
 """
 Evaluation utils
 """
+
 from __future__ import annotations
 
 import os
@@ -18,6 +19,7 @@ from nerfstudio.pipelines.base_pipeline import Pipeline
 from nerfstudio.utils.rich_utils import CONSOLE
 from merf.baking.baking_config import BakingConfig
 
+
 def eval_load_checkpoint(config: TrainerConfig, pipeline: Pipeline) -> Tuple[Path, int]:
     ## TODO: ideally eventually want to get this to be the same as whatever is used to load train checkpoint too
     """Helper function to load checkpointed pipeline
@@ -34,13 +36,18 @@ def eval_load_checkpoint(config: TrainerConfig, pipeline: Pipeline) -> Tuple[Pat
         # NOTE: this is specific to the checkpoint name format
         if not os.path.exists(config.load_dir):
             CONSOLE.rule("Error", style="red")
-            CONSOLE.print(f"No checkpoint directory found at {config.load_dir}, ", justify="center")
+            CONSOLE.print(
+                f"No checkpoint directory found at {config.load_dir}, ",
+                justify="center",
+            )
             CONSOLE.print(
                 "Please make sure the checkpoint exists, they should be generated periodically during training",
                 justify="center",
             )
             sys.exit(1)
-        load_step = sorted(int(x[x.find("-") + 1 : x.find(".")]) for x in os.listdir(config.load_dir))[-1]
+        load_step = sorted(
+            int(x[x.find("-") + 1 : x.find(".")]) for x in os.listdir(config.load_dir)
+        )[-1]
     else:
         load_step = config.load_step
     load_path = config.load_dir / f"step-{load_step:09d}.ckpt"
@@ -55,7 +62,7 @@ def baking_setup(
     config_path: Path,
     eval_num_rays_per_chunk: Optional[int] = None,
     test_mode: Literal["test", "val", "inference"] = "test",
-    baking_config: BakingConfig = None
+    baking_config: BakingConfig = None,
 ) -> Tuple[MERFTrainerConfig, Pipeline, Path, int]:
     """Shared setup for loading a saved pipeline for evaluation.
 
@@ -74,11 +81,17 @@ def baking_setup(
     # load save config
     config = yaml.load(config_path.read_text(), Loader=yaml.Loader)
     assert isinstance(config, MERFTrainerConfig)
-    config.pipeline.datamanager.dataparser.downscale_factor = baking_config.downscale_factor
+    config.pipeline.datamanager.dataparser.downscale_factor = (
+        baking_config.downscale_factor
+    )
     config.pipeline.datamanager.dataparser.eval_mode = "interval"
-    config.pipeline.datamanager.dataparser.eval_interval = baking_config.sub_sampling_factor
+    config.pipeline.datamanager.dataparser.eval_interval = (
+        baking_config.sub_sampling_factor
+    )
     config.pipeline.model.baking_config = baking_config
-    config.pipeline.datamanager._target = all_methods[config.method_name].pipeline.datamanager._target
+    config.pipeline.datamanager._target = all_methods[
+        config.method_name
+    ].pipeline.datamanager._target
     if eval_num_rays_per_chunk:
         config.pipeline.model.eval_num_rays_per_chunk = eval_num_rays_per_chunk
 

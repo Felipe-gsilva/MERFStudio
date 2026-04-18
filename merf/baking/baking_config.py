@@ -2,13 +2,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, Optional, Tuple
 
+
 @dataclass
 class BakingConfig:
     baking_path: Path = Path("outputs/baking")
     # using sub sampling factor and downscale factor when loading dataset to speed up computing alive voxels
     sub_sampling_factor: int = 4
     downscale_factor: int = 8
-    eval_chunk:int = 32768
+    eval_chunk: int = 32768
     # whether to use alpha culling
     use_alpha_culling: bool = True
     # alpha threshold and weight_threshold for culling when use alpha culling is True
