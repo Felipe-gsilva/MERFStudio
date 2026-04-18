@@ -54,6 +54,8 @@ class MERFTrainerConfig(ExperimentConfig):
     """Clip gradients with max value"""
     gradient_accumulation_steps: int = 1
     """Number of steps to accumulate gradients over."""
+    # Felipe-gsilva: Has no implementation at all, but nerfstudio's Trainer requires it so im adding it too.
+    start_paused: bool = False 
     
     
     
