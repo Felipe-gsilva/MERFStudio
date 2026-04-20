@@ -1,17 +1,31 @@
 import dataclasses
+
 from dataclasses import dataclass, field
+
 from nerfstudio.data.datamanagers.base_datamanager import VanillaDataManagerConfig
+
 from nerfstudio.data.dataparsers.nerfstudio_dataparser import NerfstudioDataParserConfig
+
 from nerfstudio.engine.optimizers import AdamOptimizerConfig, RAdamOptimizerConfig
+
 from nerfstudio.engine.schedulers import ExponentialDecaySchedulerConfig
+
 from nerfstudio.engine.trainer import TrainerConfig
+
 from nerfstudio.configs.base_config import ViewerConfig
+
 from nerfstudio.pipelines.base_pipeline import VanillaPipelineConfig, VanillaPipeline
+
 from nerfstudio.plugins.types import MethodSpecification
+
 from merf.merf_model import MERFModel, MERFModelConfig
+
 from merf.engine.merf_trainer import MERFTrainerConfig
+
 from merf.merf_datamanager import MerfDataParser, MerfDataParserConfig
+
 from merf.pipeline.merf_pipeline import MERFPipeline, MERFPipelineConfig
+
 
 merf_config = MERFTrainerConfig(
     method_name="merf-ns",
@@ -73,9 +87,10 @@ merf_config = MERFTrainerConfig(
             ),
         },
     },
-    gradient_accumulation_steps=4,
+    merf_gradient_accumulation_steps=4,
     start_paused=False,
 )
+
 MERFNS = MethodSpecification(
     config=merf_config, description="Unofficial implementation of MERF paper"
 )
