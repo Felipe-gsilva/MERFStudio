@@ -42,8 +42,8 @@ def visualize_pointcloud_and_cameras(points, camera_positions):
         ),
     )
     fig = go.Figure(data=[scatter, cameras], layout=layout)
-    pyo.plot(fig, filename="outputs/camera_and_points.html", auto_open=True)
-    fig.write_html("/gpfs/home/juyonggroup/kevin2000/outputs/pointcloud.html")
+    # pyo.plot(fig, filename="outputs/camera_and_points.html", auto_open=True)
+    # fig.write_html("/gpfs/home/juyonggroup/kevin2000/outputs/pointcloud.html")
     # fig.show()
 
 
@@ -106,5 +106,5 @@ def visualize_camera_poses_plotly(poses, scale=0.1):
     )
 
     # Show the plot
-    fig.write_html("/gpfs/home/juyonggroup/kevin2000/outputs/pose.html")
+    # fig.write_html("/gpfs/home/juyonggroup/kevin2000/outputs/pose.html")
     # fig.show()
