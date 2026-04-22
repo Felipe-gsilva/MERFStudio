@@ -113,6 +113,8 @@ def auto_orient_and_center_poses(
                 # re-normalize
 
         rotation = rotation_matrix_between(up, torch.Tensor([0, 0, 1]))
+        transform = torch.cat([rotation, rotation @ -translation[..., None]], dim=-1)
+        oriented_poses = transform @ poses
 
     elif method == "none":
         transform = torch.eye(4)

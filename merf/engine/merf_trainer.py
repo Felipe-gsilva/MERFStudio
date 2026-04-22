@@ -22,7 +22,6 @@ from nerfstudio.utils import profiler, writer
 class MERFTrainerConfig(ExperimentConfig):
     """Configuration for training regimen"""
 
-    start_paused: bool = False
     _target: Type = field(default_factory=lambda: MERFTrainer)
     """target class to instantiate"""
     steps_per_save: int = 1000
@@ -58,8 +57,12 @@ class MERFTrainerConfig(ExperimentConfig):
     """Clip gradients with max value"""
     grad_max_norm: float = 0.001
     """Clip gradients with max value"""
-    gradient_accumulation_steps: int = 1
-    """Number of steps to accumulate gradients over."""
+    gradient_accumulation_steps: Dict[str, int] = field(default_factory=lambda: {})
+    """Number of steps to accumulate gradients over. Contains a mapping of {param_group:num}"""
+    merf_gradient_accumulation_steps: int = 1
+    """Number of steps to accumulate gradients over for MERF."""
+    # Felipe-gsilva: Has no implementation at all, but nerfstudio's Trainer requires it so im adding it too.
+    start_paused: bool = False
 
 
 class MERFTrainer(Trainer):
@@ -73,10 +76,10 @@ class MERFTrainer(Trainer):
 
         self.optimizers.zero_grad_all()
         cpu_or_cuda_str: str = self.device.split(":")[0]
-        assert self.gradient_accumulation_steps > 0, (
-            f"gradient_accumulation_steps must be > 0, not {self.gradient_accumulation_steps}"
+        assert self.config.merf_gradient_accumulation_steps > 0, (
+            f"gradient_accumulation_steps must be > 0, not {self.config.merf_gradient_accumulation_steps}"
         )
-        for _ in range(self.gradient_accumulation_steps):
+        for _ in range(self.config.merf_gradient_accumulation_steps):
             with torch.autocast(
                 device_type=cpu_or_cuda_str, enabled=self.mixed_precision
             ):
@@ -84,7 +87,7 @@ class MERFTrainer(Trainer):
                     step=step
                 )
                 loss = functools.reduce(torch.add, loss_dict.values())
-                loss /= self.gradient_accumulation_steps
+                loss /= self.config.merf_gradient_accumulation_steps
             self.grad_scaler.scale(loss).backward()  # type: ignore
 
         if self.config.clip_gradients:
