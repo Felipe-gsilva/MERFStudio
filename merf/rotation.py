@@ -4,27 +4,17 @@ import open3d as o3d
 
 def initialize_points(path, rotation_matrix):
     point_cloud = o3d.io.read_point_cloud(path)
-
     points = np.asarray(point_cloud.points)
     pad = np.ones(shape=(*points.shape[:-1], 1), dtype=np.float32)
-    points = np.concatenate([points, pad], axis=-1)
-
-    # colmap to nerf
+    points_homo = np.concatenate([points, pad], axis=-1)
     applied_transform = np.eye(4)
     applied_transform = applied_transform[np.array([1, 0, 2, 3]), :]
     applied_transform[2, :] *= -1
-    # Extract the 3x3 rotation/scaling matrix and the 3x1 translation vector
-    R = applied_transform[:3, :3]
-    t = applied_transform[:3, 3]
-
-    # Apply the rotation, then add the translation
-    points = np.dot(points, R.T) + t
-    rotated_points = np.dot(points, rotation_matrix.T)
-    rotated_points = rotated_points[..., :-1]
-
+    points_homo = np.dot(points_homo, applied_transform.T)
+    points_homo = np.dot(points_homo, rotation_matrix.T)
+    rotated_points = points_homo[..., :-1]
     rotated_point_cloud = o3d.geometry.PointCloud()
     rotated_point_cloud.points = o3d.utility.Vector3dVector(rotated_points)
-
     o3d.io.write_point_cloud(path, rotated_point_cloud)
     return rotated_points
 
