@@ -16,7 +16,12 @@ def initialize_points(path, rotation_matrix):
     applied_transform = np.eye(4)
     applied_transform = applied_transform[np.array([1, 0, 2, 3]), :]
     applied_transform[2, :] *= -1
-    points = np.dot(points, applied_transform.T)
+    # Extract the 3x3 rotation/scaling matrix and the 3x1 translation vector
+    R = applied_transform[:3, :3]
+    t = applied_transform[:3, 3]
+
+    # Apply the rotation, then add the translation
+    points = np.dot(points, R.T) + t
     rotated_points = np.dot(points, rotation_matrix.T)
     rotated_points = rotated_points[..., :-1]
     # # 创建旋转后的点云对象
