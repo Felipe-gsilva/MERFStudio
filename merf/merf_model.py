@@ -1070,9 +1070,12 @@ class MERFModel(Model):
         loss_dict = {}
         image = batch["image"].to(self.device)
         loss_dict["rgb_loss"] = self.rgb_loss(image, outputs["rgb"])
-        loss_dict["s3im_loss"] = self.config.s3im_loss_mult * self.s3im_loss(
-            outputs["rgb"], image
-        )
+        if loss_dict["s3im_loss"] > 0.0:
+            loss_dict["s3im_loss"] = self.config.s3im_loss_mult * self.s3im_loss(
+                outputs["rgb"], image
+            )
+        else:
+            loss_dict["s3im_loss"] = torch.tensor(0.0, device=outputs["rgb"].device)
         # loss_dict["specular_loss"] = self.rgb_loss(outputs["distill_specular"], outputs["specular"].detach())
         # loss_dict["diffuse_loss"] = self.rgb_loss(image, outputs["diffuse"])
         if self.training:
