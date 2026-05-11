@@ -1115,10 +1115,13 @@ class MERFModel(Model):
                 )
 
             if self.config.accumulation_loss_mult > 0.0:
+                safe_acc = torch.nan_to_num(
+                    outputs["accumulation"], nan=0.0, posinf=1.0, neginf=0.0
+                )
                 loss_dict["acc_loss"] = (
                     self.config.accumulation_loss_mult
                     * self.acc_loss(
-                        outputs["accumulation"].clip(1e-5, 1.0 - 1e-5),
+                        safe_acc.clip(1e-5, 1.0 - 1e-5),
                         torch.ones_like(outputs["accumulation"]),
                     )
                 )
